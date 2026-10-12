@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JAZEYI — Private Conversation</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071417">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABMElEQVR4nGNkwAK4FFT+YxOnFHx7cIcRXQxFgFYW43MIE70tR7eLid6WozuCiZBCWgPGgfA9MhjwEBh1AAs1DPEU+ccwX+cvnC9xgJVovQMeAqMOGHXAqAMG3AEkF0TL9P4wsEKbExMeMjMc/cDIwIzUrPlLYtVGsgNUuBgY5Dggtrz9/Y/h7CdmBkchhK2vf2G0uvACkqNg5xuEBQFi/xge2P1miJb8Bxc79J7GDuh7yMzw4Dt2S979ZmDofkCakSQ74P1vBgbPcywMc54wMTz5wcjw+z8Dw9vfDAzrXzExeJxlYXj8g7QQGPAWEVWqY0Lg6YktcLa0hQ+KHM3LAWTLsfEHvCBiwtZdohf49uAOI81DAD3O0flw39M7N8BCngldgJ6WMzCg9Y5hgJ7dcwA++F3NuxqZfgAAAABJRU5ErkJggg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#071417; --ink-2:#0c1f25; --ink-3:#10232a;
+    --paper:#f0e9d8; --paper-dim:#cfc4ab;
+    --orange:#f2601f; --teal:#37b9a9;
+    --line:rgba(240,233,216,.11);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink); color:var(--paper);
+    font-family:'Space Grotesk', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+  ::selection{background:var(--orange); color:var(--ink);}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace; letter-spacing:.1em; text-transform:uppercase;}
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--orange); outline-offset:2px; border-radius:2px;}
+
+  .bar{
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:14px 22px; border-bottom:1px solid var(--line);
+    background:rgba(7,20,23,.88); backdrop-filter:blur(12px);
+  }
+  .logo{font-family:'Anton',sans-serif; font-size:19px; letter-spacing:1.2px; display:flex; align-items:center; gap:8px;}
+  .logo .rec{width:8px; height:8px; border-radius:50%; background:var(--orange); animation:bl 1.6s infinite;}
+  @keyframes bl{50%{opacity:.2;}}
+  .bar .spacer{flex:1;}
+  .pill{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    padding:6px 11px; border-radius:999px; border:1px solid var(--line); display:inline-flex; align-items:center; gap:7px;
+  }
+  .pill i{width:7px; height:7px; border-radius:50%; background:var(--orange);}
+  .pill.s-new i{background:var(--orange);}
+  .pill.s-in_progress i{background:var(--teal);}
+  .pill.s-completed i{background:#7f8a8d;}
+  .bar a.ghost{
+    font-size:12.5px; opacity:.7; border:1px solid var(--line); padding:8px 14px; border-radius:4px; transition:opacity .2s, border-color .2s;
+  }
+  .bar a.ghost:hover{opacity:1; border-color:rgba(240,233,216,.4);}
+
+  main{flex:1; width:100%; max-width:860px; margin:0 auto; padding:34px 22px 20px; display:flex; flex-direction:column;}
+
+  .head-card{
+    border:1px solid var(--line); border-radius:8px; background:var(--ink-2);
+    padding:22px 24px; margin-bottom:26px;
+  }
+  .head-card .k{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--teal); display:block; margin-bottom:10px;}
+  .head-card h1{font-family:'Anton',sans-serif; font-size:clamp(22px,4vw,30px); letter-spacing:.4px; line-height:1.05; text-transform:uppercase;}
+  .head-card p.desc{margin-top:12px; font-size:14px; line-height:1.6; opacity:.72; max-width:560px; white-space:pre-wrap;}
+  .save{
+    margin-top:18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:rgba(242,96,31,.08); border:1px solid rgba(242,96,31,.35); border-radius:6px; padding:12px 14px;
+  }
+  .save .mono{font-size:9.5px; color:var(--orange); flex:1 1 200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:.06em;}
+  .save b{font-weight:600;}
+  .copy-btn{
+    background:var(--orange); color:var(--ink); border:0; border-radius:4px; padding:8px 14px;
+    font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; cursor:pointer;
+    transition:background .2s, transform .15s;
+  }
+  .copy-btn:hover{background:var(--paper);}
+  .copy-btn:active{transform:scale(.97);}
+  .recover-line{margin-top:14px; font-size:12.5px; opacity:.5;}
+  .recover-line a{color:var(--teal); text-decoration:underline; text-underline-offset:3px;}
+
+  .notice{
+    display:none; margin-bottom:18px; padding:12px 16px; border-radius:6px; font-size:13px;
+    border:1px solid rgba(196,67,43,.5); background:rgba(196,67,43,.12); color:#f2b8a6;
+  }
+  .notice.show{display:block;}
+
+  .thread{flex:1; display:flex; flex-direction:column; gap:4px; padding-bottom:8px;}
+  .day{display:flex; align-items:center; gap:14px; margin:22px 0 14px;
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; opacity:.4;}
+  .day::before,.day::after{content:""; flex:1; height:1px; background:var(--line);}
+  .msg{max-width:78%; display:flex; flex-direction:column; margin-bottom:12px;}
+  .msg .who{font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; opacity:.45; margin:0 4px 5px;}
+  .bubble{
+    padding:12px 16px; border-radius:10px; font-size:15px; line-height:1.55;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .msg.owner .who{text-align:left;}
+  .msg.owner .bubble{background:var(--ink-3); border:1px solid var(--line); border-top-left-radius:3px;}
+  .msg.visitor{align-self:flex-end; align-items:flex-end;}
+  .msg.visitor .who{text-align:right;}
+  .msg.visitor .bubble{background:var(--orange); color:var(--ink); border-top-right-radius:3px; font-weight:500;}
+  .msg.pending .bubble{opacity:.55;}
+  .meta{font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.1em; opacity:.4; margin:5px 4px 0; text-transform:uppercase;}
+  .msg.visitor .meta{text-align:right;}
+  .meta .seen{color:var(--teal); opacity:1;}
+  .sys{margin:16px auto; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; opacity:.45; text-align:center;}
+
+  .composer{
+    position:sticky; bottom:0; z-index:10; padding:14px 0 18px;
+    background:linear-gradient(180deg, rgba(7,20,23,0), var(--ink) 30%);
+  }
+  .composer form{
+    display:flex; gap:12px; align-items:flex-end;
+    background:var(--ink-2); border:1px solid var(--line); border-radius:10px; padding:10px 10px 10px 16px;
+    transition:border-color .2s;
+  }
+  .composer form:focus-within{border-color:rgba(242,96,31,.55);}
+  textarea{
+    flex:1; background:transparent; border:0; resize:none; outline:none;
+    color:var(--paper); font-family:inherit; font-size:15px; line-height:1.5; max-height:140px; padding:6px 0;
+  }
+  textarea::placeholder{color:rgba(240,233,216,.35);}
+  .send{
+    background:var(--orange); color:var(--ink); border:0; border-radius:6px;
+    padding:11px 20px; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.04em;
+    cursor:pointer; transition:background .2s, transform .15s; white-space:nowrap;
+  }
+  .send:hover{background:var(--paper);}
+  .send:active{transform:scale(.97);}
+  .send:disabled{opacity:.6; cursor:default;}
+  .cont-bar{display:flex; justify-content:space-between; margin-top:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; opacity:.4;}
+
+  /* error / empty states */
+  .center-card{
+    border:1px solid var(--line); border-radius:8px; background:var(--ink-2);
+    padding:44px 34px; text-align:center; margin:60px auto 0; max-width:520px;
+  }
+  .center-card h2{font-family:'Anton',sans-serif; font-size:26px; letter-spacing:.5px; text-transform:uppercase; margin-bottom:12px;}
+  .center-card p{font-size:14px; opacity:.7; line-height:1.6;}
+  .center-card .mono{color:var(--teal); font-size:10.5px; display:block; margin-bottom:14px; letter-spacing:.18em;}
+  .rec-form{margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;}
+  .rec-form input{
+    flex:1 1 220px; background:var(--ink); border:1px solid var(--line); border-radius:5px;
+    padding:12px 14px; color:var(--paper); font-family:inherit; font-size:14px; outline:none;
+    transition:border-color .2s;
+  }
+  .rec-form input:focus{border-color:var(--teal);}
+  .rec-note{margin-top:12px; font-size:12px; opacity:.55; line-height:1.5;}
+  .rec-note.ok{color:var(--teal); opacity:1;}
+  .home-link{display:inline-block; margin-top:20px; font-size:13px; color:var(--orange); text-decoration:underline; text-underline-offset:3px;}
+
+  @media (max-width:640px){
+    .msg{max-width:88%;}
+    .bar{gap:10px; padding:12px 14px;}
+    main{padding:24px 14px 12px;}
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important;} }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a href="/" class="logo" data-hover><span class="rec"></span>JAZEYI</a>
+  <span class="pill s-new" id="statusPill" style="display:none"><i></i><span id="statusTxt">NEW</span></span>
+  <span class="spacer"></span>
+  <a href="/admin" class="ghost">Owner sign-in</a>
+  <a href="/" class="ghost">← Back to site</a>
+</header>
+
+<main id="app">
+  <div class="notice" id="notice"></div>
+
+  <div class="head-card" id="headCard" style="display:none">
+    <span class="k">Private thread — you &amp; JAZEYI</span>
+    <h1 id="cTitle">—</h1>
+    <p class="desc" id="cDesc"></p>
+    <div class="save">
+      <span class="mono"><b>Save this link</b> — it's your only key back in. <span id="linkUrl"></span></span>
+      <button class="copy-btn" id="copyBtn">Copy link</button>
+    </div>
+    <div class="recover-line">Lost the link? <a href="#" id="recGo">Recover it with your email</a> →</div>
+  </div>
+
+  <div class="thread" id="thread"></div>
+
+  <div class="composer" id="composer" style="display:none">
+    <form id="sendForm">
+      <textarea id="msgInput" rows="1" maxlength="2000" placeholder="Write a message…" required></textarea>
+      <button class="send" id="sendBtn" type="submit">Send</button>
+    </form>
+    <div class="cont-bar"><span>Enter to send · Shift+Enter for a new line</span><span id="charCount">0 / 2000</span></div>
+  </div>
+
+  <div id="errorState"></div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var app = $('app'), threadEl = $('thread'), headCard = $('headCard'), composer = $('composer');
+
+  /* ---------- token ---------- */
+  var token = (location.hash || '').replace(/^#/, '').trim();
+  if (!token){
+    try { token = localStorage.getItem('jz_last_token') || ''; } catch(e){}
+    if (token) location.hash = token;
+  }
+  if (token){ try { localStorage.setItem('jz_last_token', token); } catch(e){} }
+
+  var msgs = [], lastId = 0, ownerReadId = 0, convo = null, stopPoll = false;
+
+  /* ---------- utils ---------- */
+  function esc(s){ var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function fmtTime(iso){
+    try{
+      var dt = new Date(iso);
+      return dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }catch(e){ return ''; }
+  }
+  function fmtDay(iso){
+    try{
+      var dt = new Date(iso), today = new Date();
+      var same = dt.toDateString() === today.toDateString();
+      if (same) return 'Today';
+      var y = new Date(today); y.setDate(y.getDate() - 1);
+      if (dt.toDateString() === y.toDateString()) return 'Yesterday';
+      return dt.toLocaleDateString([], {month:'short', day:'numeric', year: dt.getFullYear() === today.getFullYear() ? undefined : 'numeric'});
+    }catch(e){ return ''; }
+  }
+  function relTime(iso){
+    try{
+      var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 60) return 'just now';
+      if (s < 3600) return Math.floor(s/60) + 'm ago';
+      if (s < 86400) return Math.floor(s/3600) + 'h ago';
+      return Math.floor(s/86400) + 'd ago';
+    }catch(e){ return ''; }
+  }
+  function toast(msg){
+    var n = $('notice'); n.textContent = msg; n.classList.add('show');
+    clearTimeout(n._t); n._t = setTimeout(function(){ n.classList.remove('show'); }, 5000);
+  }
+
+  var STATUS_LABEL = { new:'New', in_progress:'In progress', completed:'Completed' };
+  function setStatus(s){
+    var pill = $('statusPill');
+    pill.style.display = 'inline-flex';
+    pill.className = 'pill s-' + s;
+    $('statusTxt').textContent = STATUS_LABEL[s] || s;
+  }
+
+  /* ---------- render ---------- */
+  var dayCache = null;
+  function bubble(m, pending){
+    var wrap = document.createElement('div');
+    wrap.className = 'msg ' + m.sender + (pending ? ' pending' : '');
+    var who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = m.sender === 'owner' ? 'JAZEYI' : 'You';
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = m.body;
+    var meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = pending ? 'sending…' : relTime(m.created_at);
+    meta.setAttribute('data-t', m.created_at);
+    wrap.appendChild(who); wrap.appendChild(b); wrap.appendChild(meta);
+    return wrap;
+  }
+  function daySep(iso){
+    var el = document.createElement('div');
+    el.className = 'day'; el.textContent = fmtDay(iso);
+    return el;
+  }
+  function render(appendOnly){
+    if (!appendOnly){
+      threadEl.innerHTML = '';
+      dayCache = null;
+      msgs.forEach(function(m, i){
+        var d = (m.created_at || '').slice(0,10);
+        if (d !== dayCache){ dayCache = d; threadEl.appendChild(daySep(m.created_at)); }
+        threadEl.appendChild(bubble(m));
+      });
+      var sys = document.createElement('div');
+      sys.className = 'sys';
+      sys.textContent = msgs.length ? '' : 'No messages yet — say hi.';
+      threadEl.appendChild(sys);
+    } else {
+      var sysEl = threadEl.querySelector('.sys'); if (sysEl) sysEl.remove();
+      msgs.forEach(function(m){
+        if (m.id <= lastId) return;
+        var d = (m.created_at || '').slice(0,10);
+        if (d !== dayCache){ dayCache = d; threadEl.appendChild(daySep(m.created_at)); }
+        threadEl.appendChild(bubble(m));
+        lastId = Math.max(lastId, m.id);
+      });
+    }
+    refreshSeen();
+    maybeScroll();
+  }
+  function refreshSeen(){
+    var old = threadEl.querySelector('.meta .seen');
+    if (old) old.remove();
+    var mine = null;
+    for (var i = msgs.length - 1; i >= 0; i--){
+      if (msgs[i].sender === 'visitor'){ mine = msgs[i]; break; }
+    }
+    if (!mine) return;
+    var nodes = threadEl.querySelectorAll('.msg.visitor .meta');
+    var lastMeta = nodes[nodes.length - 1];
+    if (!lastMeta) return;
+    var seen = mine.id && mine.id <= ownerReadId;
+    var s = document.createElement('span');
+    s.className = 'seen';
+    s.textContent = ' · ' + (seen ? 'Seen' : 'Delivered');
+    lastMeta.appendChild(s);
+  }
+  var stick = true;
+  threadEl.addEventListener && window.addEventListener('scroll', function(){
+    stick = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 140;
+  }, {passive:true});
+  function maybeScroll(){
+    if (stick) requestAnimationFrame(function(){ window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}); });
+  }
+
+  /* keep relative times fresh */
+  setInterval(function(){
+    threadEl.querySelectorAll('.meta[data-t]').forEach(function(el){
+      var seenSpan = el.querySelector('.seen');
+      el.textContent = relTime(el.getAttribute('data-t'));
+      if (seenSpan) el.appendChild(seenSpan);
+    });
+  }, 30000);
+
+  /* ---------- api ---------- */
+  function fetchThread(first){
+    var url = '/api/thread?t=' + encodeURIComponent(token) + (lastId ? '&since=' + lastId : '');
+    return fetch(url, {cache:'no-store'}).then(function(r){
+      if (r.status === 404) throw new Error('missing');
+      return r.json();
+    }).then(function(d){
+      if (!d.ok) throw new Error(d.error || 'load');
+      convo = d.conversation;
+      ownerReadId = d.owner_read_id || 0;
+      setStatus(convo.status);
+      document.title = 'JAZEYI — ' + convo.title;
+      if (first){
+        msgs = d.messages; lastId = msgs.length ? msgs[msgs.length-1].id : 0;
+        $('cTitle').textContent = convo.title;
+        $('cDesc').textContent = convo.description;
+        $('linkUrl').textContent = location.origin + '/chat#' + token;
+        headCard.style.display = 'block';
+        composer.style.display = 'block';
+        render(false);
+      } else if (d.messages.length){
+        msgs = msgs.concat(d.messages);
+        render(true);
+      } else {
+        refreshSeen();
+      }
+      errCount = 0;
+    }).catch(function(e){
+      errCount++;
+      if (e.message === 'missing'){ stopPoll = true; showError(); return; }
+      if (errCount > 2) toast('Connection hiccup — retrying…');
+    });
+  }
+  var errCount = 0;
+  function loop(){
+    if (stopPoll) return;
+    fetchThread(!msgs.length).finally(function(){
+      if (!stopPoll) setTimeout(loop, errCount > 3 ? 9000 : 2500);
+    });
+    if (Date.now() - (loop._full || 0) > 45000){  // periodic full refresh for status/seen
+      loop._full = Date.now(); /* handled implicitly via always-GET thread */
+    }
+  }
+
+  /* ---------- send ---------- */
+  var input = $('msgInput'), sendBtn = $('sendBtn');
+  function autosize(){
+    input.style.height = 'auto';
+    input.style.height = Math.min(140, input.scrollHeight) + 'px';
+    $('charCount').textContent = input.value.length + ' / 2000';
+  }
+  input.addEventListener('input', autosize);
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('sendForm').requestSubmit(); }
+  });
+
+  $('sendForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var body = input.value.trim();
+    if (!body) return;
+    sendBtn.disabled = true;
+    var pendingMsg = {id: 0, sender:'visitor', body: body, created_at: new Date().toISOString()};
+    var tmpDay = pendingMsg.created_at.slice(0,10);
+    var sysEl = threadEl.querySelector('.sys'); if (sysEl) sysEl.remove();
+    if (tmpDay !== dayCache){ dayCache = tmpDay; threadEl.appendChild(daySep(pendingMsg.created_at)); }
+    var pend = bubble(pendingMsg, true);
+    threadEl.appendChild(pend);
+    stick = true; maybeScroll();
+    fetch('/api/send', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({token: token, body: body})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      sendBtn.disabled = false;
+      if (!d.ok){ toast(d.error || 'Could not send.'); pend.remove(); return; }
+      input.value = ''; autosize(); input.focus();
+      pend.remove();
+      fetchThread(false);
+    }).catch(function(){
+      sendBtn.disabled = false; pend.remove();
+      toast('Network error — message not sent. Try again.');
+    });
+  });
+
+  /* ---------- copy / recover ---------- */
+  $('copyBtn').addEventListener('click', function(){
+    var url = location.origin + '/chat#' + token;
+    var done = function(){ $('copyBtn').textContent = 'Copied ✓'; setTimeout(function(){ $('copyBtn').textContent = 'Copy link'; }, 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(done, function(){ fallbackCopy(url); done(); });
+    } else { fallbackCopy(url); done(); }
+  });
+  function fallbackCopy(text){
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    ta.remove();
+  }
+
+  function showError(){
+    headCard.style.display = 'none'; composer.style.display = 'none'; threadEl.innerHTML = '';
+    var box = $('errorState');
+    box.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'center-card';
+    card.innerHTML =
+      '<span class="mono">// Thread access</span>' +
+      '<h2>Can\'t open this conversation</h2>' +
+      '<p>This link looks wrong or incomplete. Conversations are private — you need the exact link you got when you started, or you can recover it with the email you used.</p>' +
+      '<form class="rec-form" id="recForm">' +
+      '  <input type="email" name="email" required placeholder="Your email address">' +
+      '  <button class="send" type="submit">Recover link</button>' +
+      '</form>' +
+      '<div class="rec-note" id="recNote"></div>' +
+      '<a class="home-link" href="/">← Back to jazeyi</a>';
+    box.appendChild(card);
+    var f = card.querySelector('#recForm');
+    f.addEventListener('submit', function(e){
+      e.preventDefault();
+      var note = card.querySelector('#recNote');
+      note.className = 'rec-note'; note.textContent = 'Sending…';
+      fetch('/api/recover', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email: f.email.value})
+      }).then(function(r){ return r.json(); }).then(function(d){
+        note.className = 'rec-note ok';
+        note.textContent = d.message || 'If that email matches a conversation, the link is on its way.';
+      }).catch(function(){
+        note.className = 'rec-note';
+        note.textContent = 'Network error — try again, or message @jazeyiii on Telegram / IG.';
+      });
+    });
+  }
+  $('recGo').addEventListener('click', function(e){
+    e.preventDefault();
+    showError();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+
+  /* ---------- boot ---------- */
+  if (token){ loop(); } else { showError(); }
+})();
+</script>
+
+</body>
+</html>

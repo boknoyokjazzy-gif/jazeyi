@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JAZEYI — Inbox</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#071417">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABMElEQVR4nGNkwAK4FFT+YxOnFHx7cIcRXQxFgFYW43MIE70tR7eLid6WozuCiZBCWgPGgfA9MhjwEBh1AAs1DPEU+ccwX+cvnC9xgJVovQMeAqMOGHXAqAMG3AEkF0TL9P4wsEKbExMeMjMc/cDIwIzUrPlLYtVGsgNUuBgY5Dggtrz9/Y/h7CdmBkchhK2vf2G0uvACkqNg5xuEBQFi/xge2P1miJb8Bxc79J7GDuh7yMzw4Dt2S979ZmDofkCakSQ74P1vBgbPcywMc54wMTz5wcjw+z8Dw9vfDAzrXzExeJxlYXj8g7QQGPAWEVWqY0Lg6YktcLa0hQ+KHM3LAWTLsfEHvCBiwtZdohf49uAOI81DAD3O0flw39M7N8BCngldgJ6WMzCg9Y5hgJ7dcwA++F3NuxqZfgAAAABJRU5ErkJggg==">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#071417; --ink-2:#0c1f25; --ink-3:#10232a;
+    --paper:#f0e9d8; --orange:#f2601f; --teal:#37b9a9; --mut:#7f8a8d;
+    --line:rgba(240,233,216,.11);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--ink); color:var(--paper); font-family:'Space Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column;}
+  ::selection{background:var(--orange); color:var(--ink);}
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--orange); outline-offset:2px;}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace; letter-spacing:.1em; text-transform:uppercase;}
+
+  /* ============ login ============ */
+  #login{
+    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(70% 70% at 50% 20%, rgba(242,96,31,.08), transparent 60%), var(--ink);
+    padding:22px;
+  }
+  #login.hidden{display:none;}
+  .login-card{width:100%; max-width:380px; border:1px solid var(--line); border-radius:10px; background:var(--ink-2); padding:34px 30px;}
+  .logo{font-family:'Anton',sans-serif; font-size:22px; letter-spacing:1.2px; display:flex; align-items:center; gap:9px;}
+  .logo .rec{width:9px; height:9px; border-radius:50%; background:var(--orange); animation:bl 1.6s infinite;}
+  @keyframes bl{50%{opacity:.2;}}
+  .login-card .k{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--teal); margin:20px 0 8px; display:block;}
+  .login-card p{font-size:13px; opacity:.6; line-height:1.55; margin-bottom:20px;}
+  .login-card input{
+    width:100%; background:var(--ink); border:1px solid var(--line); border-radius:5px;
+    padding:13px 14px; color:var(--paper); font-family:inherit; font-size:15px; outline:none; transition:border-color .2s;
+  }
+  .login-card input:focus{border-color:var(--orange);}
+  .login-card .send{
+    width:100%; margin-top:14px; background:var(--orange); color:var(--ink); border:0; border-radius:5px;
+    padding:13px; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.05em; cursor:pointer; transition:background .2s;
+  }
+  .login-card .send:hover{background:var(--paper);}
+  .login-err{min-height:1em; margin-top:12px; font-size:12.5px; color:#f2b8a6; font-family:'IBM Plex Mono',monospace; letter-spacing:.04em;}
+
+  /* ============ app frame ============ */
+  header.top{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding:14px 22px; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20;
+    background:rgba(7,20,23,.9); backdrop-filter:blur(12px);
+  }
+  .top .spacer{flex:1;}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap;}
+  .tab{
+    background:none; border:1px solid var(--line); color:var(--paper); border-radius:999px;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    padding:8px 13px; cursor:pointer; transition:all .2s; display:inline-flex; gap:7px; align-items:center;
+  }
+  .tab .n{opacity:.55;}
+  .tab:hover{border-color:rgba(240,233,216,.4);}
+  .tab.on{background:var(--orange); color:var(--ink); border-color:var(--orange); font-weight:500;}
+  .tab.on .n{opacity:.8;}
+  .ghost-btn{
+    background:none; border:1px solid var(--line); color:var(--paper); border-radius:5px;
+    font-size:12.5px; padding:8px 14px; cursor:pointer; transition:all .2s; opacity:.85;
+  }
+  .ghost-btn:hover{opacity:1; border-color:rgba(240,233,216,.4);}
+
+  .layout{flex:1; display:grid; grid-template-columns:380px 1fr; min-height:0;}
+
+  /* ---- sidebar ---- */
+  .side{border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0;}
+  .side-tools{padding:14px 16px; border-bottom:1px solid var(--line);}
+  .search{
+    width:100%; background:var(--ink); border:1px solid var(--line); border-radius:5px;
+    padding:11px 13px; color:var(--paper); font-family:inherit; font-size:13.5px; outline:none; transition:border-color .2s;
+  }
+  .search:focus{border-color:var(--teal);}
+  .conv-list{flex:1; overflow-y:auto;}
+  .conv{
+    width:100%; text-align:left; background:none; border:0; border-bottom:1px solid var(--line);
+    padding:15px 18px; cursor:pointer; transition:background .2s; color:var(--paper);
+    display:block; position:relative;
+  }
+  .conv:hover{background:rgba(240,233,216,.03);}
+  .conv.on{background:rgba(242,96,31,.07); box-shadow:inset 3px 0 0 var(--orange);}
+  .conv .row1{display:flex; align-items:baseline; gap:10px;}
+  .conv .name{font-weight:600; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .conv .time{margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; opacity:.4; white-space:nowrap;}
+  .conv .title{font-size:12.5px; opacity:.65; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .conv .row2{display:flex; align-items:center; gap:8px; margin-top:8px;}
+  .conv .snip{font-size:12px; opacity:.5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;}
+  .dot-status{width:8px; height:8px; border-radius:50%; flex:0 0 8px;}
+  .d-new{background:var(--orange);}
+  .d-in_progress{background:var(--teal);}
+  .d-completed{background:var(--mut);}
+  .unread{
+    background:var(--orange); color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:500;
+    min-width:20px; height:20px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; padding:0 6px;
+  }
+  .side-empty{padding:44px 24px; text-align:center; font-size:13px; opacity:.5; line-height:1.6;}
+
+  /* ---- thread pane ---- */
+  .pane{display:flex; flex-direction:column; min-height:0;}
+  .pane-empty{
+    flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    opacity:.4; text-align:center; padding:30px;
+  }
+  .pane-empty .mono{font-size:11px; letter-spacing:.18em;}
+  .pane-head{padding:18px 24px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;}
+  .pane-head .who{flex:1 1 300px;}
+  .pane-head h2{font-family:'Anton',sans-serif; font-size:22px; letter-spacing:.4px; text-transform:uppercase;}
+  .pane-head .sub{font-size:12.5px; opacity:.6; margin-top:4px; display:flex; gap:14px; flex-wrap:wrap;}
+  .pane-head .sub a{color:var(--teal);}
+  .pane-head .desc{font-size:13px; opacity:.7; line-height:1.6; margin-top:10px; max-width:680px; white-space:pre-wrap;}
+  .pane-tools{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .status-sel{
+    background:var(--ink); color:var(--paper); border:1px solid var(--line); border-radius:5px;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    padding:9px 12px; cursor:pointer; outline:none;
+  }
+  .back-btn{display:none;}
+
+  .pane-thread{flex:1; overflow-y:auto; padding:22px 24px; display:flex; flex-direction:column; gap:4px;}
+  .day{display:flex; align-items:center; gap:14px; margin:18px 0 12px;
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; opacity:.4;}
+  .day::before,.day::after{content:""; flex:1; height:1px; background:var(--line);}
+  .msg{max-width:72%; display:flex; flex-direction:column; margin-bottom:12px;}
+  .msg .who{font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; opacity:.45; margin:0 4px 5px;}
+  .bubble{padding:12px 16px; border-radius:10px; font-size:14.5px; line-height:1.55; white-space:pre-wrap; word-break:break-word;}
+  .msg.visitor .bubble{background:var(--ink-3); border:1px solid var(--line); border-top-left-radius:3px;}
+  .msg.owner{align-self:flex-end; align-items:flex-end;}
+  .msg.owner .who{text-align:right;}
+  .msg.owner .bubble{background:var(--orange); color:var(--ink); border-top-right-radius:3px; font-weight:500;}
+  .msg.pending .bubble{opacity:.55;}
+  .meta{font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.08em; opacity:.4; margin:5px 4px 0; text-transform:uppercase;}
+  .meta .seen{color:var(--teal); opacity:1;}
+
+  .pane-compose{padding:14px 22px 18px; border-top:1px solid var(--line);}
+  .pane-compose form{display:flex; gap:12px; align-items:flex-end; background:var(--ink-2); border:1px solid var(--line); border-radius:10px; padding:10px 10px 10px 16px; transition:border-color .2s;}
+  .pane-compose form:focus-within{border-color:rgba(242,96,31,.55);}
+  .pane-compose textarea{flex:1; background:transparent; border:0; resize:none; outline:none; color:var(--paper); font-family:inherit; font-size:14.5px; line-height:1.5; max-height:140px; padding:6px 0;}
+  .pane-compose textarea::placeholder{color:rgba(240,233,216,.35);}
+  .send{background:var(--orange); color:var(--ink); border:0; border-radius:6px; padding:11px 20px; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; transition:background .2s, transform .15s; white-space:nowrap;}
+  .send:hover{background:var(--paper);}
+  .send:active{transform:scale(.97);}
+  .send:disabled{opacity:.6; cursor:default;}
+
+  .notice{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:60;
+    background:var(--ink-3); border:1px solid rgba(242,96,31,.5); color:var(--paper);
+    padding:11px 18px; border-radius:6px; font-size:13px; display:none;}
+  .notice.show{display:block;}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .side{border-right:0;}
+    .pane{display:none; position:fixed; inset:0; z-index:30; background:var(--ink);}
+    .pane.open{display:flex;}
+    .back-btn{display:inline-flex;}
+    .msg{max-width:88%;}
+    body.pane-open{overflow:hidden;}
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important;} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <form class="login-card" id="loginForm">
+    <div class="logo"><span class="rec"></span>JAZEYI</div>
+    <span class="k">// Owner dashboard</span>
+    <p>Private area — client conversations, replies, and project statuses. Sign in with the admin password from your server setup.</p>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Admin password" required>
+    <button class="send" type="submit" id="loginBtn">Sign in</button>
+    <div class="login-err" id="loginErr"></div>
+  </form>
+</div>
+
+<!-- APP -->
+<header class="top">
+  <a href="/" class="logo"><span class="rec"></span>JAZEYI</a>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-f="all">All <span class="n" id="cAll">0</span></button>
+    <button class="tab" data-f="new">New <span class="n" id="cNew">0</span></button>
+    <button class="tab" data-f="in_progress">In progress <span class="n" id="cProg">0</span></button>
+    <button class="tab" data-f="completed">Completed <span class="n" id="cDone">0</span></button>
+  </div>
+  <span class="spacer"></span>
+  <a href="/" class="ghost-btn" style="text-decoration:none">View site</a>
+  <button class="ghost-btn" id="logoutBtn">Log out</button>
+</header>
+
+<div class="layout">
+  <aside class="side">
+    <div class="side-tools">
+      <input class="search" id="search" placeholder="Search name, email, project…">
+    </div>
+    <div class="conv-list" id="convList"></div>
+    <div class="side-empty" id="sideEmpty" style="display:none">No conversations yet.<br>When visitors start one from your site, it shows up here.</div>
+  </aside>
+
+  <section class="pane" id="pane">
+    <div class="pane-empty" id="paneEmpty">
+      <span class="mono">// Inbox</span>
+      <p>Select a conversation on the left to read and reply.</p>
+    </div>
+    <div id="paneMain" style="display:none; flex:1; display:flex; flex-direction:column; min-height:0">
+      <div class="pane-head">
+        <div class="who">
+          <button class="ghost-btn back-btn" id="backBtn" style="margin-bottom:14px">← All conversations</button>
+          <h2 id="pTitle">—</h2>
+          <div class="sub">
+            <span id="pName">—</span>
+            <a id="pEmail" href="#">—</a>
+            <span id="pDate">—</span>
+          </div>
+          <p class="desc" id="pDesc"></p>
+        </div>
+        <div class="pane-tools">
+          <select class="status-sel" id="statusSel">
+            <option value="new">● New</option>
+            <option value="in_progress">● In progress</option>
+            <option value="completed">● Completed</option>
+          </select>
+          <button class="ghost-btn" id="copyLink">Copy visitor link</button>
+        </div>
+      </div>
+      <div class="pane-thread" id="paneThread"></div>
+      <div class="pane-compose">
+        <form id="replyForm">
+          <textarea id="replyInput" rows="1" maxlength="2000" placeholder="Reply…" required></textarea>
+          <button class="send" type="submit" id="replyBtn">Send</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="notice" id="notice"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var loginEl = $('login'), loginErr = $('loginErr');
+
+  /* ---------- helpers ---------- */
+  function esc(s){ var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function api(path, opts){
+    opts = opts || {};
+    opts.credentials = 'same-origin';
+    opts.cache = 'no-store';
+    if (opts.body && typeof opts.body !== 'string'){
+      opts.headers = {'Content-Type':'application/json'};
+      opts.body = JSON.stringify(opts.body);
+    }
+    return fetch(path, opts).then(function(r){
+      if (r.status === 401) throw new Error('auth');
+      return r.json().then(function(d){
+        if (!d.ok) throw new Error(d.error || 'request failed');
+        return d;
+      });
+    });
+  }
+  function toast(m){
+    var n = $('notice'); n.textContent = m; n.classList.add('show');
+    clearTimeout(n._t); n._t = setTimeout(function(){ n.classList.remove('show'); }, 3200);
+  }
+  function relTime(iso){
+    try{
+      var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+      if (s < 60) return 'now';
+      if (s < 3600) return Math.floor(s/60) + 'm';
+      if (s < 86400) return Math.floor(s/3600) + 'h';
+      return Math.floor(s/86400) + 'd';
+    }catch(e){ return ''; }
+  }
+  function fmtDay(iso){
+    try{
+      var dt = new Date(iso), today = new Date();
+      if (dt.toDateString() === today.toDateString()) return 'Today';
+      var y = new Date(today); y.setDate(y.getDate() - 1);
+      if (dt.toDateString() === y.toDateString()) return 'Yesterday';
+      return dt.toLocaleDateString([], {month:'short', day:'numeric'});
+    }catch(e){ return ''; }
+  }
+  function fmtDate(iso){
+    try{ return new Date(iso).toLocaleDateString([], {month:'short', day:'numeric', year:'numeric'}); }
+    catch(e){ return ''; }
+  }
+  var STATUS_LABEL = { 'new':'New', 'in_progress':'In progress', 'completed':'Completed' };
+
+  /* ---------- state ---------- */
+  var convs = [], filter = 'all', query = '', open = null, openMsgs = [];
+
+  /* ---------- login ---------- */
+  $('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = $('loginBtn');
+    btn.disabled = true; loginErr.textContent = '…';
+    api('/api/admin/login', {method:'POST', body:{password: $('pw').value}})
+      .then(function(){
+        loginEl.classList.add('hidden');
+        startApp();
+      })
+      .catch(function(err){
+        loginErr.textContent = err.message === 'auth' ? 'Wrong password.' : (err.message || 'Error.');
+      })
+      .finally(function(){ btn.disabled = false; });
+  });
+  $('logoutBtn').addEventListener('click', function(){
+    api('/api/admin/logout', {method:'POST', body:{}}).finally(function(){ location.reload(); });
+  });
+
+  /* ---------- conversation list ---------- */
+  function loadList(silent){
+    return api('/api/admin/conversations').then(function(d){
+      convs = d.conversations;
+      $('cAll').textContent = convs.length;
+      $('cNew').textContent = convs.filter(function(c){ return c.status==='new'; }).length;
+      $('cProg').textContent = convs.filter(function(c){ return c.status==='in_progress'; }).length;
+      $('cDone').textContent = convs.filter(function(c){ return c.status==='completed'; }).length;
+      renderList();
+      if (!silent) scheduleList();
+    }).catch(function(err){
+      if (err.message === 'auth') location.reload();
+      if (!silent) scheduleList();
+    });
+  }
+  var listTimer = null;
+  function scheduleList(){
+    clearTimeout(listTimer);
+    listTimer = setTimeout(function(){ loadList(false); }, 3000);
+  }
+
+  function renderList(){
+    var list = $('convList'), empty = $('sideEmpty');
+    var q = query.toLowerCase();
+    var shown = convs.filter(function(c){
+      if (filter !== 'all' && c.status !== filter) return false;
+      if (q && (c.name + ' ' + c.email + ' ' + c.title + ' ' + c.snippet).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    list.innerHTML = '';
+    empty.style.display = shown.length ? 'none' : 'block';
+    if (!convs.length) empty.innerHTML = 'No conversations yet.<br>When visitors start one from your site, it shows up here.';
+    shown.forEach(function(c){
+      var b = document.createElement('button');
+      b.className = 'conv' + (open && open.id === c.id ? ' on' : '');
+      b.innerHTML =
+        '<div class="row1"><span class="name">' + esc(c.name) + '</span><span class="time">' + relTime(c.updated_at) + '</span></div>' +
+        '<div class="title">' + esc(c.title) + '</div>' +
+        '<div class="row2"><span class="dot-status d-' + c.status + '"></span>' +
+        '<span class="snip">' + (c.last_sender === 'owner' ? 'You: ' : '') + esc(c.snippet) + '</span>' +
+        (c.unread ? '<span class="unread">' + c.unread + '</span>' : '') + '</div>';
+      b.addEventListener('click', function(){ openThread(c.id); });
+      list.appendChild(b);
+    });
+  }
+
+  /* ---------- tabs + search ---------- */
+  $('tabs').addEventListener('click', function(e){
+    var b = e.target.closest('.tab');
+    if (!b) return;
+    filter = b.getAttribute('data-f');
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('on', t === b); });
+    renderList();
+  });
+  $('search').addEventListener('input', function(e){ query = e.target.value; renderList(); });
+
+  /* ---------- thread ---------- */
+  function openThread(id){
+    api('/api/admin/thread?id=' + id).then(function(d){
+      open = d.conversation;
+      openMsgs = d.messages;
+      open._visitorReadId = d.visitor_read_id || 0;
+      renderPane();
+      $('paneEmpty').style.display = 'none';
+      $('paneMain').style.display = 'flex';
+      $('pane').classList.add('open');
+      document.body.classList.add('pane-open');
+      loadList(true); // clears unread badge
+      scheduleThread();
+    }).catch(function(err){
+      if (err.message === 'auth') location.reload(); else toast(err.message);
+    });
+  }
+  var threadTimer = null;
+  function scheduleThread(){
+    clearTimeout(threadTimer);
+    threadTimer = setTimeout(function(){
+      if (!open) return;
+      api('/api/admin/thread?id=' + open.id).then(function(d){
+        var before = openMsgs.length;
+        openMsgs = d.messages;
+        open._visitorReadId = d.visitor_read_id || 0;
+        if (d.conversation.status !== open.status){ open.status = d.conversation.status; $('statusSel').value = open.status; }
+        if (openMsgs.length !== before){ renderThread(); } else { refreshSeen(); }
+        scheduleThread();
+      }).catch(function(err){
+        if (err.message === 'auth') location.reload();
+        scheduleThread();
+      });
+    }, 2500);
+  }
+
+  function renderPane(){
+    $('pTitle').textContent = open.title;
+    $('pName').textContent = open.name;
+    var em = $('pEmail'); em.textContent = open.email; em.href = 'mailto:' + open.email;
+    $('pDate').textContent = 'started ' + fmtDate(open.created_at);
+    $('pDesc').textContent = open.description;
+    $('statusSel').value = open.status;
+    renderThread();
+  }
+
+  var dayCache = null;
+  function bubble(m, pending){
+    var wrap = document.createElement('div');
+    wrap.className = 'msg ' + m.sender + (pending ? ' pending' : '');
+    var who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = m.sender === 'owner' ? 'You' : open.name;
+    var b = document.createElement('div');
+    b.className = 'bubble'; b.textContent = m.body;
+    var meta = document.createElement('div');
+    meta.className = 'meta'; meta.textContent = pending ? 'sending…' : relTime(m.created_at) + ' ago';
+    wrap.appendChild(who); wrap.appendChild(b); wrap.appendChild(meta);
+    return wrap;
+  }
+  function renderThread(){
+    var t = $('paneThread');
+    t.innerHTML = '';
+    dayCache = null;
+    openMsgs.forEach(function(m){
+      var d = (m.created_at || '').slice(0,10);
+      if (d !== dayCache){
+        dayCache = d;
+        var sep = document.createElement('div');
+        sep.className = 'day'; sep.textContent = fmtDay(m.created_at);
+        t.appendChild(sep);
+      }
+      t.appendChild(bubble(m));
+    });
+    refreshSeen();
+    t.scrollTop = t.scrollHeight;
+  }
+  function refreshSeen(){
+    if (!open || !openMsgs.length) return;
+    var last = null;
+    for (var i = openMsgs.length - 1; i >= 0; i--){
+      if (openMsgs[i].sender === 'owner'){ last = openMsgs[i]; break; }
+    }
+    if (!last) return;
+    var metas = document.querySelectorAll('#paneThread .msg.owner .meta');
+    var lastMeta = metas[metas.length - 1];
+    if (!lastMeta || lastMeta.querySelector('.seen')) return;
+    var s = document.createElement('span');
+    s.className = 'seen';
+    s.textContent = ' · ' + (last.id <= open._visitorReadId ? 'Seen' : 'Delivered');
+    lastMeta.appendChild(s);
+  }
+
+  $('backBtn').addEventListener('click', function(){
+    $('pane').classList.remove('open');
+    document.body.classList.remove('pane-open');
+    open = null;
+    clearTimeout(threadTimer);
+    $('paneMain').style.display = 'none';
+    $('paneEmpty').style.display = 'flex';
+  });
+
+  /* ---------- reply ---------- */
+  var ri = $('replyInput');
+  ri.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('replyForm').requestSubmit(); }
+  });
+  ri.addEventListener('input', function(){
+    ri.style.height = 'auto'; ri.style.height = Math.min(140, ri.scrollHeight) + 'px';
+  });
+  $('replyForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!open) return;
+    var body = ri.value.trim();
+    if (!body) return;
+    var btn = $('replyBtn');
+    btn.disabled = true;
+    var pend = bubble({sender:'owner', body:body, created_at:new Date().toISOString()}, true);
+    $('paneThread').appendChild(pend);
+    $('paneThread').scrollTop = $('paneThread').scrollHeight;
+    api('/api/admin/send', {method:'POST', body:{conversation_id: open.id, body: body}})
+      .then(function(){
+        ri.value = ''; ri.style.height = 'auto'; ri.focus();
+        pend.remove();
+        return api('/api/admin/thread?id=' + open.id).then(function(d){
+          openMsgs = d.messages; open._visitorReadId = d.visitor_read_id || 0;
+          renderThread();
+          loadList(true);
+        });
+      })
+      .catch(function(err){ pend.remove(); toast(err.message === 'auth' ? 'Session expired — sign in again.' : err.message); })
+      .finally(function(){ btn.disabled = false; });
+  });
+
+  /* ---------- status + copy ---------- */
+  $('statusSel').addEventListener('change', function(){
+    if (!open) return;
+    var val = this.value;
+    api('/api/admin/status', {method:'POST', body:{conversation_id: open.id, status: val}})
+      .then(function(){
+        open.status = val;
+        toast('Marked as ' + STATUS_LABEL[val]);
+        loadList(true);
+      })
+      .catch(function(err){ toast(err.message); });
+  });
+  $('copyLink').addEventListener('click', function(){
+    if (!open) return;
+    var url = open.visitor_link;
+    var done = function(){
+      $('copyLink').textContent = 'Copied ✓';
+      setTimeout(function(){ $('copyLink').textContent = 'Copy visitor link'; }, 1800);
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, done);
+    else done();
+  });
+
+  /* ---------- boot ---------- */
+  function startApp(){
+    document.querySelector('#paneEmpty').style.display = 'flex';
+    loadList(false);
+  }
+  // already logged in?
+  api('/api/admin/conversations').then(function(){
+    convs = []; // will be filled by loadList
+    loginEl.classList.add('hidden');
+    startApp();
+  }).catch(function(){
+    /* stay on login */
+  });
+})();
+</script>
+
+</body>
+</html>

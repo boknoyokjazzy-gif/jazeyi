@@ -1,0 +1,18 @@
+# Deploy-blueprint for https://render.com — one click from your GitHub repo.
+services:
+  - type: web
+    name: jazeyi
+    runtime: python
+    plan: free
+    startCommand: python3 server.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: JZ_ADMIN_PASSWORD
+        sync: false          # you set this in the Render dashboard (keep it secret!)
+      # When you're on a paid plan ($7/mo starter) you can attach a 1 GB disk
+      # mounted at /var/data — then the database survives restarts/redeploys forever:
+      # - key: JZ_DB
+      #   value: /var/data/chat.db
+    # disk:
+    #   name: jazeyi-data
+    #   mountPath: /var/data
