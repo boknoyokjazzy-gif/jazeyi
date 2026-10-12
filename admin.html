@@ -167,6 +167,12 @@
     .back-btn{display:inline-flex;}
     .msg{max-width:88%;}
     body.pane-open{overflow:hidden;}
+    /* iOS zooms into form controls under 16px */
+    .login-card input, .search, #replyInput{font-size:16px;}
+  }
+  @supports (padding: max(0px)){
+    .login-card input, .search, #replyInput{-webkit-text-size-adjust:100%;}
+    .pane-compose{padding-bottom:calc(18px + env(safe-area-inset-bottom));}
   }
   @media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important;} }
 </style>
@@ -481,8 +487,10 @@
 
   /* ---------- reply ---------- */
   var ri = $('replyInput');
+  // Enter-sends only on mouse/keyboard devices; phones use Enter for newlines.
+  var finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
   ri.addEventListener('keydown', function(e){
-    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('replyForm').requestSubmit(); }
+    if (e.key === 'Enter' && !e.shiftKey && finePointer){ e.preventDefault(); $('replyForm').requestSubmit(); }
   });
   ri.addEventListener('input', function(){
     ri.style.height = 'auto'; ri.style.height = Math.min(140, ri.scrollHeight) + 'px';

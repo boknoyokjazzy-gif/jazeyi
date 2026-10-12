@@ -118,7 +118,7 @@
   .composer form:focus-within{border-color:rgba(242,96,31,.55);}
   textarea{
     flex:1; background:transparent; border:0; resize:none; outline:none;
-    color:var(--paper); font-family:inherit; font-size:15px; line-height:1.5; max-height:140px; padding:6px 0;
+    color:var(--paper); font-family:inherit; font-size:16px; line-height:1.5; max-height:140px; padding:6px 0;
   }
   textarea::placeholder{color:rgba(240,233,216,.35);}
   .send{
@@ -155,6 +155,14 @@
     .msg{max-width:88%;}
     .bar{gap:10px; padding:12px 14px;}
     main{padding:24px 14px 12px;}
+    /* iOS zooms the page into any form control under 16px — keep controls at 16px+ */
+    textarea, .rec-form input{font-size:16px;}
+    /* keyboard-hint is desktop-only; phones have no Shift key */
+    .cont-bar .full-hint{display:none;}
+  }
+  /* keep the composer clear of the iPhone home-indicator swipe bar */
+  @supports (padding: max(0px)){
+    .composer{padding-bottom:calc(18px + env(safe-area-inset-bottom));}
   }
   @media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important;} }
 </style>
@@ -190,7 +198,7 @@
       <textarea id="msgInput" rows="1" maxlength="2000" placeholder="Write a message…" required></textarea>
       <button class="send" id="sendBtn" type="submit">Send</button>
     </form>
-    <div class="cont-bar"><span>Enter to send · Shift+Enter for a new line</span><span id="charCount">0 / 2000</span></div>
+    <div class="cont-bar"><span class="full-hint">Enter to send · Shift+Enter for a new line</span><span id="charCount">0 / 2000</span></div>
   </div>
 
   <div id="errorState"></div>
@@ -387,8 +395,10 @@
     $('charCount').textContent = input.value.length + ' / 2000';
   }
   input.addEventListener('input', autosize);
+  // Enter-sends only on mouse/keyboard devices; phones use Enter for newlines and send via the button.
+  var finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
   input.addEventListener('keydown', function(e){
-    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('sendForm').requestSubmit(); }
+    if (e.key === 'Enter' && !e.shiftKey && finePointer){ e.preventDefault(); $('sendForm').requestSubmit(); }
   });
 
   $('sendForm').addEventListener('submit', function(e){
