@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABMElEQVR4nGNkwAK4FFT+YxOnFHx7cIcRXQxFgFYW43MIE70tR7eLid6WozuCiZBCWgPGgfA9MhjwEBh1AAs1DPEU+ccwX+cvnC9xgJVovQMeAqMOGHXAqAMG3AEkF0TL9P4wsEKbExMeMjMc/cDIwIzUrPlLYtVGsgNUuBgY5Dggtrz9/Y/h7CdmBkchhK2vf2G0uvACkqNg5xuEBQFi/xge2P1miJb8Bxc79J7GDuh7yMzw4Dt2S979ZmDofkCakSQ74P1vBgbPcywMc54wMTz5wcjw+z8Dw9vfDAzrXzExeJxlYXj8g7QQGPAWEVWqY0Lg6YktcLa0hQ+KHM3LAWTLsfEHvCBiwtZdohf49uAOI81DAD3O0flw39M7N8BCngldgJ6WMzCg9Y5hgJ7dcwA++F3NuxqZfgAAAABJRU5ErkJggg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://player.vimeo.com">
+<link rel="dns-prefetch" href="https://player.vimeo.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -310,8 +312,7 @@
   .poster .py::after{content:""; border-left:14px solid var(--orange); border-top:9px solid transparent; border-bottom:9px solid transparent; margin-left:3px;}
   .work-card:hover .poster .py{transform:scale(1.12); background:rgba(242,96,31,.15); border-color:var(--orange);}
   .poster .pt{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.16em; text-transform:uppercase; opacity:.55;}
-  .work-embed iframe{position:absolute; inset:0; width:100%; height:100%; border:0; z-index:2; display:none;}
-  body.net-ok .work-embed iframe{display:block;}
+  .work-embed iframe{position:absolute; inset:0; width:100%; height:100%; border:0; z-index:2; display:block;}
   .work-info{padding:24px 26px 28px; border-top:1px solid var(--line);}
   .work-top{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:10px;}
   .work-info .mono{font-size:11px; color:var(--orange); display:block; letter-spacing:.14em;}
